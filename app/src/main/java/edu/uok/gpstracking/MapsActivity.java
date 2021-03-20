@@ -13,12 +13,13 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
 import java.util.List;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerDragListener {
     private static final String TAG = "MapsActivity";
     private GoogleMap mMap;
     private Geocoder geocoder;
@@ -48,6 +49,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
 
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+        mMap.setOnMapLongClickListener(this);
+        mMap.setOnMarkerDragListener(this);
 //        @@@@@@@@@
 //        LatLng latLng = new LatLng(15.508457, 32.522854);
 //        mMap.addMarker(new MarkerOptions().position(latLng).title("الخرطوم").snippet(" عاصمة السودان"));
@@ -57,6 +61,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //        @@@@@@@@@
 
 
+//        @@@@@@@@@
         try {
             List<Address> addresses = geocoder.getFromLocationName("khartoum", 1);
             if (addresses.size() > 0) {
@@ -67,6 +72,50 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(khartoum, 13));
             }
 
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+//        @@@@@@@@@
+
+
+    }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        Log.d(TAG, "onMapLongClick: " + latLng.toString());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            if (addresses.size() > 0) {
+                Address address = addresses.get(0);
+                String s = address.getAddressLine(0);
+                mMap.addMarker(new MarkerOptions().position(latLng).title(s).draggable(true));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onMarkerDragStart(Marker marker) {
+        Log.d(TAG, "onMarkerDragStart: ");
+    }
+
+    @Override
+    public void onMarkerDrag(Marker marker) {
+        Log.d(TAG, "onMarkerDrag: ");
+    }
+
+    @Override
+    public void onMarkerDragEnd(Marker marker) {
+        Log.d(TAG, "onMarkerDragEnd: ");
+        LatLng latLng = marker.getPosition();
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            if (addresses.size() > 0) {
+                Address address = addresses.get(0);
+                String s = address.getAddressLine(0);
+                marker.setTitle(s);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
